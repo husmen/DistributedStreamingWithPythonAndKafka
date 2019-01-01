@@ -3,7 +3,7 @@ import time
 import cv2
 from kafka import KafkaProducer
 
-topic = "distributed-video1"
+servers=['localhost:9092']
 
 def publish_video(video_file):
     """
@@ -13,7 +13,7 @@ def publish_video(video_file):
     :param video_file: path to video file <string>
     """
     # Start up producer
-    producer = KafkaProducer(bootstrap_servers='localhost:9092')
+    producer = KafkaProducer(bootstrap_servers=servers)
 
     # Open file
     video = cv2.VideoCapture(video_file)
@@ -32,9 +32,9 @@ def publish_video(video_file):
         ret, buffer = cv2.imencode('.jpg', frame)
 
         # Convert to bytes and send to kafka
-        producer.send(topic, buffer.tobytes())
+        producer.send("video", buffer.tobytes())
 
-        time.sleep(0.2)
+        time.sleep(0.04)
     video.release()
     print('publish complete')
 
@@ -45,7 +45,7 @@ def publish_camera():
     """
 
     # Start up producer
-    producer = KafkaProducer(bootstrap_servers='localhost:9092')
+    producer = KafkaProducer(bootstrap_servers=servers)
 
     
     camera = cv2.VideoCapture(0)
@@ -54,7 +54,7 @@ def publish_camera():
             success, frame = camera.read()
         
             ret, buffer = cv2.imencode('.jpg', frame)
-            producer.send(topic, buffer.tobytes())
+            producer.send("webcam", buffer.tobytes())
             
             # Choppier stream, reduced load on processor
             time.sleep(0.2)
